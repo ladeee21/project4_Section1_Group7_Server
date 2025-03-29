@@ -9,7 +9,7 @@ import java.sql.*;
 public class FileServer {
     private static final int PORT = 55000;
     private static final String UPLOAD_DIR = "server_uploads/";
-    private static final String URL = "jdbc:sqlite:fileflix.db";
+    private static final String URL = "jdbc:sqlite:C:/Users/navje/project4_Section1_Group7_Server/fileflix.db";
 
     public static void main(String[] args) {
         File uploadDir = new File(UPLOAD_DIR);
@@ -56,6 +56,10 @@ public class FileServer {
                     handleRegister();
                 } else if ("LOGIN".equals(command)) {
                     handleLogin();
+                }  else if ("UPLOAD".equals(command)) {
+                    handleFileUpload();
+                } else if("RETRIEVE".equals(command)){
+                    handleClientRequest(socket);
                 }
             } catch (IOException | SQLException e) {
                 e.printStackTrace();
@@ -120,32 +124,74 @@ public class FileServer {
             }
         }
 
-
-
         private void handleFileUpload() throws IOException {
             String username = input.readUTF();
-            String fileName = input.readUTF();
+            String filename = input.readUTF();
             long fileSize = input.readLong();
-
-            File file = new File(UPLOAD_DIR + fileName);
-            FileOutputStream fileOutput = new FileOutputStream(file);
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            long totalBytesRead = 0;
-
-            while (totalBytesRead < fileSize && (bytesRead = input.read(buffer)) != -1) {
-                fileOutput.write(buffer, 0, bytesRead);
-                totalBytesRead += bytesRead;
+            File uploadDir = new File("server_uploads");
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
             }
 
-            fileOutput.close();
+            File uploadedFile = new File(uploadDir, filename);
+            try (FileOutputStream fos = new FileOutputStream(uploadedFile)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = input.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytesRead);
+                }
 
-            // Store file in database
-            Database.saveFileRecord(username, fileName, file.getAbsolutePath());
+                // Save file record in the database (filename, size, username)
+                Database.saveFile(username, filename, fileSize);
 
-            System.out.println("File " + fileName + " uploaded by " + username);
-            output.writeUTF("UPLOAD_SUCCESS");
+                output.writeUTF("UPLOAD_SUCCESS");
+            } catch (IOException e) {
+                output.writeUTF("UPLOAD_FAILED");
+                e.printStackTrace();
+            }
+        }
+
+        private static void handleClientRequest(Socket clientSocket) {
+            try (InputStream inputStream = clientSocket.getInputStream();
+                 OutputStream outputStream = clientSocket.getOutputStream();
+                 DataInputStream dis = new DataInputStream(inputStream);
+                 DataOutputStream dos = new DataOutputStream(outputStream)) {
+
+                String command = dis.readUTF();
+
+                if ("RETRIEVE".equals(command)) {
+                    String filename = dis.readUTF();
+                    byte[] fileContent = getFileContentFromDB(filename);
+
+                    if (fileContent != null) {
+                        dos.writeLong(fileContent.length);  // Send the file size
+                        dos.write(fileContent);  // Send the file data
+                    } else {
+                        dos.writeLong(0);  // Indicate that the file was not found
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Error processing client request: " + e.getMessage());
+            }
+        }
+
+        private static byte[] getFileContentFromDB(String filename) {
+            String query = "SELECT file_data FROM files WHERE filename = ?";
+
+            try (Connection conn = DriverManager.getConnection(URL);
+                 PreparedStatement stmt = conn.prepareStatement(query)) {
+
+                stmt.setString(1, filename);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    return rs.getBytes("file_data"); // Return the file data as a byte array
+                }
+
+            } catch (SQLException e) {
+                System.err.println("Database error: " + e.getMessage());
+            }
+            return null;  // File not found
         }
     }
 }

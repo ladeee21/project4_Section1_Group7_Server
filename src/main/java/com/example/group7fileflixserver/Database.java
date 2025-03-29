@@ -5,12 +5,14 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.zip.Checksum;
 
 public class Database {
 
-        private static final String URL = "jdbc:sqlite:fileflix.db";
+        private static final String URL = "jdbc:sqlite:C:/Users/navje/project4_Section1_Group7_Server/fileflix.db";
 
     public static void initialize() {
+
         try (Connection conn = DriverManager.getConnection(URL)) {
             String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -25,39 +27,28 @@ public class Database {
                     "FOREIGN KEY(username) REFERENCES users(username));";
             conn.createStatement().execute(createFilesTable);
 
+            // Check if 'size' column exists, and if not, add it
+            String checkColumnQuery = "PRAGMA table_info(files);";
+            ResultSet rs = conn.createStatement().executeQuery(checkColumnQuery);
+            boolean sizeColumnExists = false;
+
+            while (rs.next()) {
+                if (rs.getString("name").equals("size")) {
+                    sizeColumnExists = true;
+                    break;
+                }
+            }
+
+            // If the 'size' column doesn't exist, add it
+            if (!sizeColumnExists) {
+                String alterTableQuery = "ALTER TABLE files ADD COLUMN size INT NOT NULL DEFAULT 0;";
+                conn.createStatement().execute(alterTableQuery);
+                System.out.println("Added 'size' column to the 'files' table.");
+            }
+
             System.out.println("Database initialized successfully.");
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-    }
-
-
-    public static boolean registerUser(String username, String password) throws SQLException {
-        // Insert the new user into the database
-        try (Connection conn = DriverManager.getConnection(URL);
-             PreparedStatement stmt = conn.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)")) {
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            stmt.executeUpdate();
-            System.out.println("New user registered: " + username);
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace(); // Helps debug DB issues
-            return false;
-        }
-    }
-
-    // Method to check if a username already exists in the database
-    public static boolean isUsernameTaken(String username) {
-        try (Connection conn = DriverManager.getConnection(URL)) {
-            String query = "SELECT COUNT(*) FROM users WHERE username = ?;";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            return rs.getInt(1) > 0; // Returns true if the username exists
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
@@ -75,17 +66,20 @@ public class Database {
         }
     }
 
-    public static void saveFileRecord(String username, String filename, String absolutePath) {
+    public static void saveFile(String username, String filename, long fileSize) {
         try (Connection conn = DriverManager.getConnection(URL)) {
-            String query = "INSERT INTO files (username, filename) VALUES (?, ?);";
+            String query = "INSERT INTO files (username, filename, size) VALUES (?, ?, ?);";
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, username);
             stmt.setString(2, filename);
+            stmt.setLong(3, fileSize);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
+
 
 
 }
