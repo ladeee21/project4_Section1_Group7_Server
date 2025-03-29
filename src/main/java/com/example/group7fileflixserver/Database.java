@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.zip.Checksum;
 
+// database for the fileflix application
 public class Database {
 
         private static final String URL = "jdbc:sqlite:C:/Users/navje/project4_Section1_Group7_Server/fileflix.db";
@@ -19,6 +20,8 @@ public class Database {
                     "username TEXT UNIQUE NOT NULL, " +
                     "password TEXT NOT NULL);";
             conn.createStatement().execute(createUsersTable);
+
+            //Creating File tables
 
             String createFilesTable = "CREATE TABLE IF NOT EXISTS files (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -52,6 +55,7 @@ public class Database {
         }
     }
 
+    // Authenticating user
     public static boolean authenticateUser(String username, String password) {
         try (Connection conn = DriverManager.getConnection(URL)) {
             String query = "SELECT * FROM users WHERE username = ? AND password = ?;";
@@ -65,6 +69,8 @@ public class Database {
             return false;
         }
     }
+
+
 
     public static void saveFile(String username, String filename, long fileSize) {
         try (Connection conn = DriverManager.getConnection(URL)) {

@@ -72,6 +72,7 @@ public class FileServer {
             }
         }
 
+        // For handling Register
         private void handleRegister() throws IOException, SQLException {
             String username = input.readUTF();
             String password = input.readUTF();
@@ -84,6 +85,7 @@ public class FileServer {
             }
         }
 
+        // Checking if the username is already taken
         private boolean isUsernameTaken(String username) throws SQLException {
             // Check if the username already exists in the database
             try (Connection conn = DriverManager.getConnection(URL);
@@ -94,6 +96,7 @@ public class FileServer {
             }
         }
 
+        // For registering new user in the database
         public static boolean registerUser(String username, String password) throws SQLException {
             // Insert the new user into the database
             try (Connection conn = DriverManager.getConnection(URL);
@@ -109,8 +112,7 @@ public class FileServer {
             }
         }
 
-
-
+        //Authenticating login
         private void handleLogin() throws IOException {
             String username = input.readUTF();
             String password = input.readUTF();
@@ -124,6 +126,7 @@ public class FileServer {
             }
         }
 
+        // Handling file uploaf functionality
         private void handleFileUpload() throws IOException {
             String username = input.readUTF();
             String filename = input.readUTF();
