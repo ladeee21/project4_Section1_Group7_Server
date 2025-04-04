@@ -9,7 +9,7 @@ import java.sql.*;
 public class FileServer {
     private static final int PORT = 55000;
     private static final String UPLOAD_DIR = "server_uploads/";
-    private static final String URL = "jdbc:sqlite:C:/Users/navje/project4_Section1_Group7_Server/fileflix.db";
+    private static final String URL = Database.URL;
 
     public static void main(String[] args) {
         File uploadDir = new File(UPLOAD_DIR);
@@ -19,6 +19,7 @@ public class FileServer {
 
         // Initialize database
         Database.initialize();
+
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Server started on port " + PORT);
@@ -80,8 +81,12 @@ public class FileServer {
             if (isUsernameTaken(username)) {
                 output.writeUTF("REGISTER_FAILED"); // Send failure message
             } else {
-                registerUser(username, password);
-                output.writeUTF("REGISTER_SUCCESS"); // Send success message
+                // Hash the password and register the user
+                if (Database.registerUser(username, password)) {
+                    output.writeUTF("REGISTER_SUCCESS"); // Send success message
+                } else {
+                    output.writeUTF("REGISTER_FAILED"); // Send failure message
+                }
             }
         }
 
@@ -122,11 +127,16 @@ public class FileServer {
                 System.out.println(username + " authenticated successfully.");
             } else {
                 output.writeUTF("AUTH_FAILED");
-                socket.close();
+                System.out.println("Authentication failed for user: " + username);
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
-        // Handling file uploaf functionality
+        // Handling file upload functionality
         private void handleFileUpload() throws IOException {
             String username = input.readUTF();
             String filename = input.readUTF();
@@ -138,64 +148,97 @@ public class FileServer {
 
             File uploadedFile = new File(uploadDir, filename);
             try (FileOutputStream fos = new FileOutputStream(uploadedFile)) {
+                long remaining = fileSize;
                 byte[] buffer = new byte[4096];
                 int bytesRead;
-                while ((bytesRead = input.read(buffer)) != -1) {
+                while (remaining > 0 && (bytesRead = input.read(buffer, 0, (int) Math.min(buffer.length, remaining))) != -1) {
                     fos.write(buffer, 0, bytesRead);
+                    remaining -= bytesRead;
                 }
 
                 // Save file record in the database (filename, size, username)
                 Database.saveFile(username, filename, fileSize);
 
                 output.writeUTF("UPLOAD_SUCCESS");
+                System.out.println("UPLOAD_SUCCESS: File '" + filename + "' uploaded by user: " + username);
             } catch (IOException e) {
                 output.writeUTF("UPLOAD_FAILED");
+                System.err.println("UPLOAD_FAILED: File '" + filename + "' upload failed due to: " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
         private static void handleClientRequest(Socket clientSocket) {
-            try (InputStream inputStream = clientSocket.getInputStream();
-                 OutputStream outputStream = clientSocket.getOutputStream();
-                 DataInputStream dis = new DataInputStream(inputStream);
-                 DataOutputStream dos = new DataOutputStream(outputStream)) {
+            try (DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                 DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream())) {
 
-                String command = dis.readUTF();
+                // Do not read the command again here — it has already been read
+                System.out.println("Handling RETRIEVE request...");
 
-                if ("RETRIEVE".equals(command)) {
-                    String filename = dis.readUTF();
-                    byte[] fileContent = getFileContentFromDB(filename);
+                String username = dis.readUTF();  // Read the logged-in user's username
+                String filename = dis.readUTF();  // Read the requested filename
 
-                    if (fileContent != null) {
-                        dos.writeLong(fileContent.length);  // Send the file size
-                        dos.write(fileContent);  // Send the file data
-                    } else {
-                        dos.writeLong(0);  // Indicate that the file was not found
-                    }
+                System.out.println("File retrieval requested: " + filename + " by user: " + username);
+
+                if (!fileBelongsToUser(username, filename)) {
+                    dos.writeBoolean(false);
+                    dos.writeUTF("ACCESS_DENIED");
+                    System.out.println("ACCESS_DENIED: " + username + " tried to access " + filename);
+                    return;
                 }
+
+                dos.writeBoolean(true);
+
+                byte[] fileContent = getFileContentFromDisk(filename);
+                if (fileContent != null) {
+                    dos.writeLong(fileContent.length);
+                    dos.write(fileContent);
+                    System.out.println("RETRIEVE_SUCCESS: Sent " + filename + " to " + username);
+                } else {
+                    dos.writeLong(0);
+                    System.out.println("FILE_NOT_FOUND: " + filename + " does not exist on disk.");
+                }
+
             } catch (IOException e) {
                 System.err.println("Error processing client request: " + e.getMessage());
             }
         }
 
-        private static byte[] getFileContentFromDB(String filename) {
-            String query = "SELECT file_data FROM files WHERE filename = ?";
+        private static boolean fileBelongsToUser(String username, String filename) {
+            String query = "SELECT COUNT(*) FROM files WHERE filename = ? AND username = ?";
 
             try (Connection conn = DriverManager.getConnection(URL);
                  PreparedStatement stmt = conn.prepareStatement(query)) {
 
                 stmt.setString(1, filename);
-                ResultSet rs = stmt.executeQuery();
-
-                if (rs.next()) {
-                    return rs.getBytes("file_data"); // Return the file data as a byte array
+                stmt.setString(2, username);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    return rs.next() && rs.getInt(1) > 0;
                 }
-
             } catch (SQLException e) {
                 System.err.println("Database error: " + e.getMessage());
             }
-            return null;  // File not found
+            return false;
         }
+
+        private static byte[] getFileContentFromDisk(String filename) {
+            File file = new File("server_uploads", filename);
+            if (!file.exists()) {
+                System.out.println("File does not exist on disk: " + filename);
+                return null;
+            }
+
+            try (FileInputStream fis = new FileInputStream(file)) {
+                byte[] content = new byte[(int) file.length()];
+                fis.read(content);
+                return content;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+
     }
 }
 
