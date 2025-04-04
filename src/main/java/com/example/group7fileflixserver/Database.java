@@ -1,5 +1,6 @@
 package com.example.group7fileflixserver;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,7 +11,8 @@ import java.util.zip.Checksum;
 // database for the fileflix application
 public class Database {
 
-        private static final String URL = "jdbc:sqlite:C:/Users/navje/project4_Section1_Group7_Server/fileflix.db";
+    private static final String DB_PATH = Paths.get(System.getProperty("user.dir"), "fileflix.db").toString();
+    public static final String URL = "jdbc:sqlite:" + DB_PATH;
 
     public static void initialize() {
 
@@ -55,37 +57,65 @@ public class Database {
         }
     }
 
+    public static void clearFilesTable() {
+        try (Connection conn = DriverManager.getConnection(URL)) {
+            String deleteAll = "DELETE FROM files;";
+            conn.createStatement().executeUpdate(deleteAll);
+            System.out.println("Files table cleared.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean registerUser(String username, String password) throws SQLException {
+        // Hash the password using BCrypt
+        String hashedPassword = PasswordHashing.hashPassword(password);
+
+        try (Connection conn = DriverManager.getConnection(URL);
+             PreparedStatement stmt = conn.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)")) {
+            stmt.setString(1, username);
+            stmt.setString(2, hashedPassword);  // Store the hashed password
+            stmt.executeUpdate();
+            System.out.println("New user registered: " + username);
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace(); // Helps debug DB issues
+            return false;
+        }
+    }
+
     // Authenticating user
     public static boolean authenticateUser(String username, String password) {
         try (Connection conn = DriverManager.getConnection(URL)) {
-            String query = "SELECT * FROM users WHERE username = ? AND password = ?;";
+            String query = "SELECT password FROM users WHERE username = ?;";
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, username);
-            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
-            return rs.next();
+
+            if (rs.next()) {
+                String storedHash = rs.getString("password");
+                return PasswordHashing.verifyPassword(password, storedHash);  // Verify with BCrypt
+            }
+            return false;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
 
-
-
     public static void saveFile(String username, String filename, long fileSize) {
         try (Connection conn = DriverManager.getConnection(URL)) {
-            String query = "INSERT INTO files (username, filename, size) VALUES (?, ?, ?);";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setString(1, username);
-            stmt.setString(2, filename);
-            stmt.setLong(3, fileSize);
-            stmt.executeUpdate();
+            String query = "INSERT INTO files (username,filename,size) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, username);
+                stmt.setString(2, filename); // owner
+                stmt.setLong(3, fileSize);
+                stmt.executeUpdate();
+                System.out.println("File record saved in DB for user: " + username);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-
-
 
 }

@@ -5,6 +5,7 @@ module com.example.group7fileflixserver {
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
     requires java.sql;
+    requires jbcrypt;
 
     opens com.example.group7fileflixserver to javafx.fxml;
     exports com.example.group7fileflixserver;
