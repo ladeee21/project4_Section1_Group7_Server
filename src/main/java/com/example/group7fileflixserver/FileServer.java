@@ -1,5 +1,7 @@
 package com.example.group7fileflixserver;
 
+
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -80,12 +82,15 @@ public class FileServer {
 
             if (isUsernameTaken(username)) {
                 output.writeUTF("REGISTER_FAILED"); // Send failure message
+                ServerLogs.log("REGISTER_FAILED: " + username + " attempted to register with an already taken username.");
             } else {
                 // Hash the password and register the user
                 if (Database.registerUser(username, password)) {
                     output.writeUTF("REGISTER_SUCCESS"); // Send success message
+                    ServerLogs.log("REGISTER_SUCCESS: " + username + " registered successfully.");
                 } else {
                     output.writeUTF("REGISTER_FAILED"); // Send failure message
+                    ServerLogs.log("REGISTER_FAILED: " + username + " registration failed.");
                 }
             }
         }
@@ -125,9 +130,11 @@ public class FileServer {
             if (Database.authenticateUser(username, password)) {
                 output.writeUTF("AUTH_SUCCESS");
                 System.out.println(username + " authenticated successfully.");
+                ServerLogs.log("AUTH_SUCCESS: " + username + " logged in successfully.");
             } else {
                 output.writeUTF("AUTH_FAILED");
                 System.out.println("Authentication failed for user: " + username);
+                ServerLogs.log("AUTH_FAILED: " + username + " failed to log in.");
                 try {
                     socket.close();
                 } catch (IOException e) {
@@ -161,9 +168,11 @@ public class FileServer {
 
                 output.writeUTF("UPLOAD_SUCCESS");
                 System.out.println("UPLOAD_SUCCESS: File '" + filename + "' uploaded by user: " + username);
+                ServerLogs.log("UPLOAD_SUCCESS: " + username + " uploaded file '" + filename + "' (" + fileSize + " bytes).");
             } catch (IOException e) {
                 output.writeUTF("UPLOAD_FAILED");
                 System.err.println("UPLOAD_FAILED: File '" + filename + "' upload failed due to: " + e.getMessage());
+                ServerLogs.log("UPLOAD_FAILED: " + username + " failed to upload file '" + filename + "' due to error: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -184,6 +193,7 @@ public class FileServer {
                     dos.writeBoolean(false);
                     dos.writeUTF("ACCESS_DENIED");
                     System.out.println("ACCESS_DENIED: " + username + " tried to access " + filename);
+                    ServerLogs.log("ACCESS_DENIED: " + username + " tried to access file '" + filename + "' without permission.");
                     return;
                 }
 
@@ -194,9 +204,11 @@ public class FileServer {
                     dos.writeLong(fileContent.length);
                     dos.write(fileContent);
                     System.out.println("RETRIEVE_SUCCESS: Sent " + filename + " to " + username);
+                    ServerLogs.log("RETRIEVE_SUCCESS: Sent file '" + filename + "' to user: " + username);
                 } else {
                     dos.writeLong(0);
                     System.out.println("FILE_NOT_FOUND: " + filename + " does not exist on disk.");
+                    ServerLogs.log("FILE_NOT_FOUND: File '" + filename + "' not found for user: " + username);
                 }
 
             } catch (IOException e) {

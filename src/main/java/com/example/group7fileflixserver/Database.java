@@ -77,9 +77,11 @@ public class Database {
             stmt.setString(2, hashedPassword);  // Store the hashed password
             stmt.executeUpdate();
             System.out.println("New user registered: " + username);
+            ServerLogs.log("USER_REGISTERED: " + username + " registered successfully.");
             return true;
         } catch (SQLException e) {
             e.printStackTrace(); // Helps debug DB issues
+            ServerLogs.log("DB_ERROR: Error registering user '" + username + "'. Error: " + e.getMessage());
             return false;
         }
     }
@@ -112,9 +114,12 @@ public class Database {
                 stmt.setLong(3, fileSize);
                 stmt.executeUpdate();
                 System.out.println("File record saved in DB for user: " + username);
+                ServerLogs.log("FILE_SAVED: User '" + username + "' uploaded file '" + filename + "' (" + fileSize + " bytes).");
+
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            ServerLogs.log("DB_ERROR: Error saving file record for user '" + username + "'. Error: " + e.getMessage());
         }
     }
 
