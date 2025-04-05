@@ -8,14 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.zip.Checksum;
 
-// database for the fileflix application
+// Database for the Fileflix application
 public class Database {
 
     private static final String DB_PATH = Paths.get(System.getProperty("user.dir"), "fileflix.db").toString();
     public static final String URL = "jdbc:sqlite:" + DB_PATH;
 
     public static void initialize() {
-
         try (Connection conn = DriverManager.getConnection(URL)) {
             String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -23,8 +22,7 @@ public class Database {
                     "password TEXT NOT NULL);";
             conn.createStatement().execute(createUsersTable);
 
-            //Creating File tables
-
+            // Creating File tables
             String createFilesTable = "CREATE TABLE IF NOT EXISTS files (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "username TEXT NOT NULL, " +
@@ -77,9 +75,11 @@ public class Database {
             stmt.setString(2, hashedPassword);  // Store the hashed password
             stmt.executeUpdate();
             System.out.println("New user registered: " + username);
+            ServerLogs.log("USER_REGISTERED: " + username + " registered successfully.");
             return true;
         } catch (SQLException e) {
             e.printStackTrace(); // Helps debug DB issues
+            ServerLogs.log("DB_ERROR: Error registering user '" + username + "'. Error: " + e.getMessage());
             return false;
         }
     }
@@ -112,12 +112,15 @@ public class Database {
                 stmt.setLong(3, fileSize);
                 stmt.executeUpdate();
                 System.out.println("File record saved in DB for user: " + username);
+                ServerLogs.log("FILE_SAVED: User '" + username + "' uploaded file '" + filename + "' (" + fileSize + " bytes).");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            ServerLogs.log("DB_ERROR: Error saving file record for user '" + username + "'. Error: " + e.getMessage());
         }
     }
 
+    // Check if a file already exists for the user
     public static boolean fileExistsForUser(String username, String filename) {
         String query = "SELECT COUNT(*) FROM files WHERE username = ? AND filename = ?";
         try (Connection conn = DriverManager.getConnection(URL);
@@ -131,6 +134,4 @@ public class Database {
             return false;
         }
     }
-
-
 }
