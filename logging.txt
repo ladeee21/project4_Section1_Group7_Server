@@ -1,0 +1,10 @@
+[2025-04-04 15:28:47] AUTH_SUCCESS: Navjeet logged in successfully.
+[2025-04-04 15:29:20] AUTH_SUCCESS: Navjeet logged in successfully.
+[2025-04-04 15:29:48] FILE_SAVED: User 'Navjeet' uploaded file 'relaxing.jpg' (1630962 bytes).
+[2025-04-04 15:29:48] UPLOAD_SUCCESS: Navjeet uploaded file 'relaxing.jpg' (1630962 bytes).
+[2025-04-04 15:30:02] ACCESS_DENIED: Navjeet tried to access file 'relaxing' without permission.
+[2025-04-04 15:30:10] RETRIEVE_SUCCESS: Sent file 'relaxing.jpg' to user: Navjeet
+[2025-04-04 16:45:39] AUTH_SUCCESS: Navjeet logged in successfully.
+[2025-04-04 16:46:30] FILE_SAVED: User 'Navjeet' uploaded file 'relaxing.jpg' (1630962 bytes).
+[2025-04-04 16:46:30] UPLOAD_SUCCESS: Navjeet uploaded file 'relaxing.jpg' (1630962 bytes).
+[2025-04-04 16:46:51] RETRIEVE_SUCCESS: Sent file 'relaxing.jpg' to user: Navjeet
