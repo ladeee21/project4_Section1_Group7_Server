@@ -118,4 +118,19 @@ public class Database {
         }
     }
 
+    public static boolean fileExistsForUser(String username, String filename) {
+        String query = "SELECT COUNT(*) FROM files WHERE username = ? AND filename = ?";
+        try (Connection conn = DriverManager.getConnection(URL);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, filename);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 }

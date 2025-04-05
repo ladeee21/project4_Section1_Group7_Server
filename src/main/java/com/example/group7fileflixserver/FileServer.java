@@ -5,7 +5,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.*;
 
-
 public class FileServer {
     private static final int PORT = 55000;
     private static final String UPLOAD_DIR = "server_uploads/";
@@ -19,7 +18,6 @@ public class FileServer {
 
         // Initialize database
         Database.initialize();
-
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Server started on port " + PORT);
@@ -141,6 +139,24 @@ public class FileServer {
             String username = input.readUTF();
             String filename = input.readUTF();
             long fileSize = input.readLong();
+
+            // Check for duplicate
+            if (Database.fileExistsForUser(username, filename)) {
+                output.writeUTF("DUPLICATE_FILE");
+                System.out.println("UPLOAD_REJECTED: Duplicate file '" + filename + "' for user: " + username);
+
+                // Drain incoming data to avoid client-side socket reset
+                long remaining = fileSize;
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while (remaining > 0 && (bytesRead = input.read(buffer, 0, (int) Math.min(buffer.length, remaining))) != -1) {
+                    remaining -= bytesRead;
+                }
+
+                return;
+            }
+
+
             File uploadDir = new File("server_uploads");
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
@@ -156,14 +172,13 @@ public class FileServer {
                     remaining -= bytesRead;
                 }
 
-                // Save file record in the database (filename, size, username)
                 Database.saveFile(username, filename, fileSize);
-
                 output.writeUTF("UPLOAD_SUCCESS");
+                output.flush();
                 System.out.println("UPLOAD_SUCCESS: File '" + filename + "' uploaded by user: " + username);
             } catch (IOException e) {
                 output.writeUTF("UPLOAD_FAILED");
-                System.err.println("UPLOAD_FAILED: File '" + filename + "' upload failed due to: " + e.getMessage());
+                output.flush();
                 e.printStackTrace();
             }
         }
@@ -182,7 +197,7 @@ public class FileServer {
 
                 if (!fileBelongsToUser(username, filename)) {
                     dos.writeBoolean(false);
-                    dos.writeUTF("ACCESS_DENIED");
+                   // dos.writeUTF("ACCESS_DENIED");
                     System.out.println("ACCESS_DENIED: " + username + " tried to access " + filename);
                     return;
                 }
