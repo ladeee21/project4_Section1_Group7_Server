@@ -8,3 +8,62 @@
 [2025-04-04 16:46:30] FILE_SAVED: User 'Navjeet' uploaded file 'relaxing.jpg' (1630962 bytes).
 [2025-04-04 16:46:30] UPLOAD_SUCCESS: Navjeet uploaded file 'relaxing.jpg' (1630962 bytes).
 [2025-04-04 16:46:51] RETRIEVE_SUCCESS: Sent file 'relaxing.jpg' to user: Navjeet
+[2025-04-05 11:52:06] REGISTER_FAILED: s_shalzy attempted to register with an already taken username.
+[2025-04-10 09:29:57] REGISTER_FAILED: s_shalzy attempted to register with an already taken username.
+[2025-04-10 09:56:55] REGISTER_FAILED: s_shalzy attempted to register with an already taken username.
+[2025-04-10 10:05:22] REGISTER_FAILED: s_shalzy attempted to register with an already taken username.
+[2025-04-10 10:06:45] AUTH_SUCCESS: s_shalzy logged in successfully.
+[2025-04-10 12:15:55] AUTH_SUCCESS: s_shalzy logged in successfully.
+[2025-04-10 12:41:41] AUTH_SUCCESS: s_shalzy logged in successfully.
+[2025-04-10 12:41:56] LOGOUT: User s_shalzy logged out.
+[2025-04-10 13:57:33] AUTH_SUCCESS: s_shalzy logged in successfully.
+[2025-04-10 13:57:51] User logged out: s_shalzy
+[2025-04-10 14:10:59] Client connected from: 127.0.0.1
+[2025-04-10 14:11:20] Client connected from: 127.0.0.1
+[2025-04-10 14:11:20] [127.0.0.1] Command: LOGIN
+[2025-04-10 14:11:20] [127.0.0.1] User logged in: s_shalzy
+[2025-04-10 14:11:34] Connection error from 127.0.0.1: EOFException
+[2025-04-10 14:11:34] Client disconnected: 127.0.0.1
+[2025-04-10 14:11:47] [127.0.0.1] Command: LOGOUT
+[2025-04-10 14:11:47] User s_shalzy logged out from 127.0.0.1
+[2025-04-10 14:11:47] Client disconnected: 127.0.0.1
+[2025-04-10 14:16:53] Client connected from: 127.0.0.1
+[2025-04-10 14:16:53] [127.0.0.1] Command: LOGIN
+[2025-04-10 14:16:53] [127.0.0.1] User logged in: s_shalzy
+[2025-04-10 14:18:41] Connection error from 127.0.0.1: EOFException
+[2025-04-10 14:18:41] Client disconnected: 127.0.0.1
+[2025-04-10 15:24:22] Client connected from: 127.0.0.1
+[2025-04-10 15:24:22] [127.0.0.1] Command: LOGIN
+[2025-04-10 15:24:22] [127.0.0.1] User logged in: s_shalzy
+[2025-04-10 15:24:51] [127.0.0.1] Command: LOGOUT
+[2025-04-10 15:24:51] User s_shalzy logged out from 127.0.0.1
+[2025-04-10 15:24:51] Client disconnected: 127.0.0.1
+[2025-04-10 15:38:43] Client connected from: 127.0.0.1
+[2025-04-10 15:38:43] [127.0.0.1] Command: LOGIN
+[2025-04-10 15:38:43] [127.0.0.1] User logged in: s_shalzy
+[2025-04-10 15:38:54] [127.0.0.1] Command: LOGOUT
+[2025-04-10 15:38:54] User s_shalzy logged out from 127.0.0.1
+[2025-04-10 15:38:54] [Closing connection
+127.0.0.1
+[2025-04-10 15:38:54] Client disconnected: 127.0.0.1
+[2025-04-10 15:44:40] Server inactive - initiating shutdown
+[2025-04-10 15:44:40] Initiating graceful shutdown...
+[2025-04-10 15:44:40] Closing 0 active connections
+[2025-04-10 15:46:17] Client connected from: 127.0.0.1
+[2025-04-10 15:46:17] [127.0.0.1] Command: REGISTER
+[2025-04-10 15:46:17] USER_REGISTERED: dd_alli registered successfully.
+[2025-04-10 15:46:17] [127.0.0.1] New user registered: dd_alli
+[2025-04-10 15:46:44] Connection error from 127.0.0.1: SocketException
+[2025-04-10 15:46:44] [Closing connection
+127.0.0.1
+[2025-04-10 15:46:44] Client disconnected: 127.0.0.1
+[2025-04-10 15:48:04] Client connected from: 127.0.0.1
+[2025-04-10 15:48:04] [127.0.0.1] Command: LOGIN
+[2025-04-10 15:48:04] [127.0.0.1] User logged in: dd_alli
+[2025-04-10 15:48:33] Connection error from 127.0.0.1: SocketException
+[2025-04-10 15:48:33] [Closing connection
+127.0.0.1
+[2025-04-10 15:48:33] Client disconnected: 127.0.0.1
+[2025-04-10 15:50:47] Server inactive - initiating shutdown
+[2025-04-10 15:50:47] Initiating graceful shutdown...
+[2025-04-10 15:50:47] Closing 0 active connections
