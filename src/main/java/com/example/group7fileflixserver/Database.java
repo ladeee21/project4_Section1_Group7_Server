@@ -6,7 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.zip.Checksum;
+
 
 // Database for the Fileflix application
 public class Database {
@@ -132,6 +132,14 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public static void close() {
+        try {
+            System.out.println("Database resources released");
+        } catch (Exception e) {
+            System.err.println("Error closing database resources: " + e.getMessage());
         }
     }
 }
